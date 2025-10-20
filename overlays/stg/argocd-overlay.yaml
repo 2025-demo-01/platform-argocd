@@ -1,1 +1,8 @@
-
+# platform-argocd/overlays/stg/argocd-overlay.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-config
+  namespace: argocd
+data:
+  ENV: stg
