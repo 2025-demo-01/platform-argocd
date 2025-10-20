@@ -1,1 +1,22 @@
-
+# platform-argocd/apps/risk-control.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: svc-risk-control
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/2025-demo-01/svc-risk-control
+    path: k8s/overlays/prod
+    targetRevision: v0.3.0
+    kustomize: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: risk
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
