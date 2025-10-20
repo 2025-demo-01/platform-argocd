@@ -1,1 +1,22 @@
-
+# platform-argocd/apps/trading-api.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: svc-trading-api
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/2025-demo-01/svc-trading-api
+    path: k8s/overlays/prod
+    targetRevision: v1.5.0
+    kustomize: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: trading
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
