@@ -1,1 +1,55 @@
-
+# platform-argocd/apps/platform.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: platform-core
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - name: istio-base
+            chart: base
+            repo: https://istio-release.storage.googleapis.com/charts
+            namespace: istio-system
+            version: 1.22.2
+          - name: istiod
+            chart: istiod
+            repo: https://istio-release.storage.googleapis.com/charts
+            namespace: istio-system
+            version: 1.22.2
+          - name: ingress-nginx
+            chart: ingress-nginx
+            repo: https://kubernetes.github.io/ingress-nginx
+            namespace: ingress-nginx
+            version: 4.10.0
+          - name: cert-manager
+            chart: cert-manager
+            repo: https://charts.jetstack.io
+            namespace: cert-manager
+            version: v1.15.1
+          - name: external-dns
+            chart: external-dns
+            repo: https://kubernetes-sigs.github.io/external-dns
+            namespace: external-dns
+            version: 1.14.4
+  template:
+    metadata:
+      name: '{{name}}'
+    spec:
+      project: default
+      source:
+        repoURL: '{{repo}}'
+        chart: '{{chart}}'
+        targetRevision: '{{version}}'
+        helm:
+          releaseName: '{{name}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
