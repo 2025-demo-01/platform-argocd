@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dr-tools
+  namespace: argocd
+  annotations: { argocd.argoproj.io/sync-wave: "80" }
+spec:
+  project: platform
+  source:
+    repoURL: 'https://github.com/2025-demo-01/tests-and-dr'
+    targetRevision: main
+    path: k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dr
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
