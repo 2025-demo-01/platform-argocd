@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: trading-api
+  namespace: argocd
+  annotations: { argocd.argoproj.io/sync-wave: "30" }
+spec:
+  project: trading
+  source:
+    repoURL: 'https://github.com/2025-demo-01/svc-trading-api'
+    targetRevision: main
+    path: deploy/helm
+    helm:
+      releaseName: trading-api
+      valueFiles: [values.yaml]
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: trading
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true, ServerSideApply=true]
+  revisionHistoryLimit: 5
