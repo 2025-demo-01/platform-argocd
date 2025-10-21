@@ -1,5 +1,20 @@
-# CODEOWNERS
-# 파일/폴더별 검토 책임자 지정
-# 변경 시 반드시 리뷰어 승인 필요
+# 플랫폼 전체 검토자 누가할래
+* @daeun-ops 
 
-@daeun-ops ....
+# Observability 담당
+apps/observability.yaml
+
+# 보안 정책 담당
+apps/policy-as-code.yaml 
+
+# 거래 API 담당
+apps/svc-trading-api.yaml 
+
+# 지갑 서비스 담당
+apps/svc-wallet.yaml 
+
+# 매칭엔진 담당
+apps/svc-matching-engine.yaml
+
+# 위험제어 담당
+apps/svc-risk-control.yaml 
