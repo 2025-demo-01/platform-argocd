@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cmp-cm
+  namespace: argocd
+data:
+  configManagementPlugins: |
+    - name: ksops
+      generate:
+        command: ["/bin/sh", "-c"]
+        args:
+          # ksops로 복호화 → kustomize build
+          - 'ksops -d ${ARGOCD_APP_SOURCE_PATH} | kustomize build -'
