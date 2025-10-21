@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-repo-server
+  namespace: argocd
+spec:
+  template:
+    spec:
+      initContainers:
+        # sops/ksops binary 설치 (공식 이미지 그대로 쓸 때)
+        - name: install-sops-ksops
+          image: alpine:3.20
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -e
+              wget -O /tools/sops https://github.com/getsops/sops/releases/download/v3.8.1/sops-v3.8.1.linux.amd64
+              chmod +x /tools/sops
+              wget -O /tools/ksops.tar.gz https://github.com/viaduct-ai/kustomize-sops/releases/download/v4.3.2/ksops_4.3.2_Linux_x86_64.tar.gz
+              tar -xzf /tools/ksops.tar.gz -C /tools
+              mv /tools/ksops /tools/kustomize-plugins/viaduct.ai/v1/ksops/ksops
+              chmod +x /tools/kustomize-plugins/viaduct.ai/v1/ksops/ksops
+          volumeMounts:
+            - name: tools
+              mountPath: /tools
+        #  권한/경로 점검용
+        - name: prepare-age-dir
+          image: alpine:3.20
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -e
+              mkdir -p /etc/age
+          volumeMounts:
+            - name: age-key
+              mountPath: /etc/age
+              readOnly: true
+      containers:
+        - name: argocd-repo-server
+          env:
+            - name: SOPS_AGE_KEY_FILE
+              value: /etc/age/key.txt
+            - name: XDG_CONFIG_HOME
+              value: /home/argocd/cfg
+          volumeMounts:
+            - name: age-key
+              mountPath: /etc/age
+              readOnly: true
+            - name: tools
+              mountPath: /usr/local/bin/sops
+              subPath: sops
+            - name: tools
+              mountPath: /home/argocd/cfg/kustomize/plugin/viaduct.ai/v1/ksops/ksops
+              subPath: kustomize-plugins/viaduct.ai/v1/ksops/ksops
+      volumes:
+        - name: age-key
+          secret:
+            secretName: age-secret              # ← 아래 파일에서 생성하
+        - name: tools
+          emptyDir: {}
