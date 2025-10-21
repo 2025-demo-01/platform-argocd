@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: matching-engine
+  namespace: argocd
+  annotations: { argocd.argoproj.io/sync-wave: "50" }
+spec:
+  project: trading
+  source:
+    repoURL: 'https://github.com/2025-demo-01/svc-matching-engine'
+    targetRevision: main
+    path: deploy/helm
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: trading
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
