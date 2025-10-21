@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-dev
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+  labels: { env: dev }
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/2025-demo-01/platform-argocd.git
+    targetRevision: main
+    path: apps/base
+    kustomize: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true, ServerSideApply=true]
