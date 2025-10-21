@@ -1,0 +1,68 @@
+name: validate-kustomize
+on:
+  pull_request:
+    paths:
+      - 'apps/**'
+      - 'overlays/**'
+      - 'projects/**'
+      - 'secrets/**'
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/**'
+      - 'overlays/**'
+      - 'projects/**'
+      - 'secrets/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up kustomize
+        uses: imranismail/setup-kustomize@v2
+
+      - name: Build dev overlay
+        run: kustomize build overlays/dev | tee /dev/null
+
+      - name: Build stg overlay
+        run: kustomize build overlays/stg | tee /dev/null
+
+      - name: Build prod overlay
+        run: kustomize build overlays/prod | tee /dev/null
+
+      - name: Kubeconform validate (dev/stg/prod)
+        uses: yannh/kubeconform-action@v0.6.4
+        with:
+          kubernetes_version: v1.29.0
+          # 기본 스키마 + 내장 리소스 검사
+          schema_location: default
+          reject:
+            # 스키마가 없는 경우 실패 처리
+            - "empty:"
+          include:
+            - "apps/**"
+            - "overlays/**"
+            - "projects/**"
+
+      - name: (Optional) Kyverno/Gatekeeper dry-run
+        if: ${{ false }}
+        run: |
+          echo "Hook here if you want to add kyverno/opa dry-run later"
+
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: YAML Lint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          config_data: |
+            extends: default
+            rules:
+              line-length: { max: 160 }
+              document-start: disable
