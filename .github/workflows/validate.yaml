@@ -1,58 +1,54 @@
-name: validate-kustomize
+name: validate
 on:
   pull_request:
     paths:
       - 'apps/**'
       - 'overlays/**'
-      - 'projects/**'
+      - 'bootstrap/**'
       - 'secrets/**'
+      - '.github/workflows/**'
+      - 'scripts/**'
   push:
     branches: [ main ]
     paths:
       - 'apps/**'
       - 'overlays/**'
-      - 'projects/**'
+      - 'bootstrap/**'
       - 'secrets/**'
+      - 'scripts/**'
 
 jobs:
-  validate:
+  build-and-validate:
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up kustomize
-        uses: imranismail/setup-kustomize@v2
+      - name: Install kustomize + kubeconform + yq
+        run: bash scripts/install-tools.sh
 
-      - name: Build dev overlay
+      - name: Kustomize build overlays/dev
         run: kustomize build overlays/dev | tee /dev/null
 
-      - name: Build stg overlay
+      - name: Kustomize build overlays/stg
         run: kustomize build overlays/stg | tee /dev/null
 
-      - name: Build prod overlay
+      - name: Kustomize build overlays/prod
         run: kustomize build overlays/prod | tee /dev/null
 
       - name: Kubeconform validate (dev/stg/prod)
         uses: yannh/kubeconform-action@v0.6.4
         with:
           kubernetes_version: v1.29.0
-          # 기본 스키마 + 내장 리소스 검사
           schema_location: default
-          reject:
-            # 스키마가 없는 경우 실패 처리
-            - "empty:"
-          include:
-            - "apps/**"
-            - "overlays/**"
-            - "projects/**"
+          files: |
+            overlays/dev
+            overlays/stg
+            overlays/prod
 
-      - name: (Optional) Kyverno/Gatekeeper dry-run
-        if: ${{ false }}
-        run: |
-          echo "Hook here if you want to add kyverno/opa dry-run later"
+      - name: Repo structure checks (waves, duplicates, secrets, latest)
+        run: bash scripts/check_repo.sh
 
   yamllint:
     runs-on: ubuntu-latest
