@@ -1,15 +1,14 @@
-# platform-argocd/root-app.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: exchange-root
+  name: argocd-root
   namespace: argocd
 spec:
-  project: default
+  project: platform
   source:
-    repoURL: https://github.com/2025-demo-01/platform-argocd
-    path: apps
+    repoURL: https://github.com/2025-demo-01/platform-argocd.git
     targetRevision: main
+    path: overlays/prod
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
