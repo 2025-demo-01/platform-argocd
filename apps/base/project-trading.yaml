@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: trading
+  namespace: argocd
+spec:
+  description: Trading-engine related services
+  sourceRepos:
+    - 'https://github.com/2025-demo-01/svc-*'
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: 'trading'
+  roles:
+    - name: ci
+      description: CI deployer
+      policies:
+        - p, proj:trading:ci, applications, sync, trading/*, allow
