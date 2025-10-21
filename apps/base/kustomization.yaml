@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - project-platform.yaml
+  - project-trading.yaml
+  - app-mesh.yaml
+  - app-policy.yaml
+  - app-observability.yaml
+  - app-trading-api.yaml
+  - app-wallet.yaml
+  - app-matching.yaml
+  - app-risk.yaml
+  - app-data-pipeline.yaml
+  - app-dr.yaml
