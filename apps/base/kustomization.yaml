@@ -13,4 +13,7 @@ resources:
   - app-data-pipeline.yaml
   - app-dr.yaml
   - app-ch-ddl.yaml              
-  - app-matching-engine.yaml      
+  - app-matching-engine.yaml
+  - app-wallet-dev.yaml
+  - app-wallet-stg.yaml
+  - app-wallet-prod.yaml
