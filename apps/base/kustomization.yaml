@@ -12,3 +12,5 @@ resources:
   - app-risk.yaml
   - app-data-pipeline.yaml
   - app-dr.yaml
+  - app-ch-ddl.yaml              
+  - app-matching-engine.yaml      
