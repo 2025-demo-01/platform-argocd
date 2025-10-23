@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: svc-wallet-stg
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: exchange
+    env: stg
+  annotations:
+    argocd.argoproj.io/sync-wave: "50"
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/2025-demo-01/svc-wallet.git
+    targetRevision: main
+    path: k8s/overlays/stg                # ← stg Overlays
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: trading
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
