@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ch-ddl-apply
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "38"                 # [ADDED]
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/2025-demo-01/svc-matching-engine.git
+    targetRevision: main
+    path: k8s
+    directory:
+      recurse: true
+      include: k8s/job-ch-ddl-apply.yaml               # [ADDED]
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: trading
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
