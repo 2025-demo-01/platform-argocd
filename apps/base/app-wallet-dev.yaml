@@ -13,23 +13,17 @@ spec:
   source:
     repoURL: https://github.com/2025-demo-01/svc-wallet.git
     targetRevision: main
-    path: k8s/overlays/dev                # ← dev Overlays
-    directory:
-      recurse: true
+    path: k8s/overlays/dev
+    directory: { recurse: true }
   destination:
     server: https://kubernetes.default.svc
     namespace: trading
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+    automated: { prune: true, selfHeal: true }
     syncOptions:
       - CreateNamespace=true
       - PrunePropagationPolicy=foreground
       - ApplyOutOfSyncOnly=true
     retry:
       limit: 5
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 3m
+      backoff: { duration: 5s, factor: 2, maxDuration: 3m }
