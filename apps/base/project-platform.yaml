@@ -4,12 +4,122 @@ metadata:
   name: platform
   namespace: argocd
 spec:
-  description: Platform-wide apps (mesh, policy, observability, dr)
+  description: Platform-wide apps & core services (mesh, policy, observability, trading)
+
+  # 1) 허용된 Git 저장소만 (allowlist)
   sourceRepos:
-    - 'https://github.com/2025-demo-01/*'
+    - https://github.com/2025-demo-01/platform-argocd
+    - https://github.com/2025-demo-01/observability-stack
+    - https://github.com/2025-demo-01/policy-as-code
+    - https://github.com/2025-demo-01/tests-and-dr
+    - https://github.com/2025-demo-01/svc-gateway
+    - https://github.com/2025-demo-01/svc-trading-api
+    - https://github.com/2025-demo-01/svc-matching-engine
+    - https://github.com/2025-demo-01/svc-wallet
+    - https://github.com/2025-demo-01/data-pipeline
+    # - https://github.com/2025-demo-01/*         # (임시 확장 필요 시 주석 해제)
+
+  # 2) 배포 가능한 대상 제한(네임스페이스 스코프)
   destinations:
     - server: https://kubernetes.default.svc
-      namespace: '*'
-  clusterResourceWhitelist: [{group: '*', kind: '*'}]
-  namespaceResourceWhitelist: [{group: '*', kind: '*'}]
-  orphanedResources: { warn: true }
+      namespace: argocd
+    - server: https://kubernetes.default.svc
+      namespace: istio-system
+    - server: https://kubernetes.default.svc
+      namespace: policy
+    - server: https://kubernetes.default.svc
+      namespace: observability
+    - server: https://kubernetes.default.svc
+      namespace: trading
+    - server: https://kubernetes.default.svc
+      namespace: gateway
+    - server: https://kubernetes.default.svc
+      namespace: dr
+    # - server: https://kubernetes.default.svc
+    #   namespace: kube-system     # (정말 필요한 경우에만)
+
+  # 3) 클러스터/네임스페이스 리소스 화이트리스트(너무 넓지 않게)
+  clusterResourceWhitelist:
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+    - group: ""
+      kind: Namespace
+    # Istio / Kyverno 등 CR 필요 시
+    - group: security.istio.io
+      kind: AuthorizationPolicy
+    - group: networking.istio.io
+      kind: Gateway
+    - group: kyverno.io
+      kind: ClusterPolicy
+    - group: monitoring.coreos.com
+      kind: Prometheus
+    - group: monitoring.coreos.com
+      kind: Alertmanager
+
+  namespaceResourceWhitelist:
+    - group: ""
+      kind: ConfigMap
+    - group: ""
+      kind: Secret
+    - group: ""
+      kind: Service
+    - group: ""
+      kind: ServiceAccount
+    - group: ""
+      kind: Endpoints
+    - group: apps
+      kind: Deployment
+    - group: apps
+      kind: StatefulSet
+    - group: apps
+      kind: DaemonSet
+    - group: autoscaling
+      kind: HorizontalPodAutoscaler
+    - group: policy
+      kind: PodDisruptionBudget
+    - group: networking.k8s.io
+      kind: NetworkPolicy
+    - group: monitoring.coreos.com
+      kind: ServiceMonitor
+    - group: monitoring.coreos.com
+      kind: PrometheusRule
+    - group: external-secrets.io
+      kind: ExternalSecret
+    - group: batch
+      kind: CronJob
+    - group: batch
+      kind: Job
+    - group: argoproj.io
+      kind: Application
+
+  orphanedResources:
+    warn: true
+
+  # (선택) prod 제한 배포창 - 운영 어필용
+  # syncWindows:
+  #   - kind: allow
+  #     schedule: "Mon-Fri 09:00-18:00"
+  #     duration: 9h
+  #     applications: ["*prod"]
+  #     namespaces: ["trading","gateway","observability","policy","istio-system"]
+  #     timeZone: "Asia/Seoul"
+  #   - kind: deny
+  #     schedule: "Sat-Sun 00:00-24:00"
+  #     namespaces: ["*"]
+  #     timeZone: "Asia/Seoul"
+
+  # (선택) 프로젝트 역할/RBAC 토큰 (ArgoCD UI 제한용)
+  # roles:
+  #   - name: read-only
+  #     description: read-only viewers
+  #     policies:
+  #       - p, proj:platform:read-only, applications, get, platform/*, allow
+  #     groups: []
